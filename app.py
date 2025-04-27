@@ -212,80 +212,125 @@ elif page == "Data Exploration":
 
 # PREDICTION PAGE
 elif page == "Make Prediction":
-    st.header("EV Charging Station Installation Prediction")
-    
+    st.header("EV Charging Station Availability Prediction")
+
     if df is not None and model is not None:
-        # Create input form for prediction
-        st.subheader("Enter Location and Vehicle Parameters")
-        
+        st.subheader("Enter Location and Vehicle Details")
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
-            # Latitude input
-            latitude = st.number_input("Latitude", format="%.6f")
-            
-            # Longitude input
-            longitude = st.number_input("Longitude", format="%.6f")
-        
+            latitude = st.number_input("Latitude", format="%.6f", value=19.0760)
+            longitude = st.number_input("Longitude", format="%.6f", value=72.8777)
+
         with col2:
-            # Vehicle Type input (encoded manually)
             vehicle_type_encoded = st.number_input("Vehicle Type (Encoded)", min_value=0, step=1)
-            
-            # Expected Charging Duration (in seconds)
-            duration_seconds = st.number_input("Expected Charging Duration (Seconds)", min_value=0.0, step=3600.0)
-        
-        # Show entered data
-        st.metric("Charging Duration (Hours)", round(duration_seconds / 3600, 2))
-        
-        # Show Vehicle Type Encoding Reference
-        st.subheader("Vehicle Type Encoding Reference")
-        st.write("""
-        - 0: Two-Wheeler
-        - 1: Three-Wheeler
-        - 2: Four-Wheeler
-        - 3: Heavy Vehicle
-        """)
-        
+            duration_seconds = st.number_input("Charging Duration (Seconds)", min_value=0.0, value=3600.0)
+
+        st.info("Example Encoding:\n\n0: Two-Wheeler\n1: Three-Wheeler\n2: Four-Wheeler\n3: Heavy Vehicle")
+
         # Prediction button
-        if st.button("Predict Installation Decision"):
-            # Validate inputs
-            if latitude == 0.0 or longitude == 0.0:
-                st.warning("⚠️ Please enter valid latitude and longitude values.")
+        if st.button("Predict Availability"):
+            # Prepare input
+            input_data = np.array([[latitude, longitude, vehicle_type_encoded, duration_seconds]])
+            
+            # Scale input (important because model was trained on scaled data)
+            scaled_input = scaler.transform(input_data)
+
+            # Predict
+            prediction = model.predict(scaled_input)[0]
+
+            # Display result
+            st.subheader("Prediction Result")
+            if prediction == 1:
+                st.success("✅ EV Charging Slot Likely Available!")
             else:
-                # Prepare input data
-                input_data = np.array([[latitude, longitude, vehicle_type_encoded, duration_seconds]])
-                
-                # Make prediction
-                prediction = model.predict(input_data)[0]
-                
-                # Display prediction
-                st.subheader("Prediction Result")
-                if prediction == 1:
-                    st.success("✅ Recommendation: Install EV Charging Point!")
-                else:
-                    st.error("❌ Recommendation: Do NOT Install EV Charging Point.")
-                
-                # Show prediction probabilities if available
-                if hasattr(model, "predict_proba"):
-                    st.subheader("Prediction Confidence")
-                    
-                    prediction_proba = model.predict_proba(input_data)[0]
-                    
-                    proba_df = pd.DataFrame({
-                        'Decision': ['Do NOT Install', 'Install'],
-                        'Probability': prediction_proba
-                    })
-                    
-                    # Sort by probability
-                    proba_df = proba_df.sort_values('Probability', ascending=False)
-                    
-                    # Display top 2 outcomes
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    sns.barplot(data=proba_df, x='Decision', y='Probability', ax=ax, palette="viridis")
-                    plt.title('Installation Decision Confidence')
-                    plt.ylabel('Probability')
-                    plt.ylim(0, 1)
-                    plt.xticks(rotation=45)
-                    st.pyplot(fig)
+                st.error("❌ EV Charging Slot Likely Not Available.")
+
+            # If your model has probability prediction
+            if hasattr(model, "predict_proba"):
+                st.subheader("Prediction Confidence")
+                prediction_proba = model.predict_proba(scaled_input)[0]
+
+                proba_df = pd.DataFrame({
+                    'Availability': ['Not Available (0)', 'Available (1)'],
+                    'Probability': prediction_proba
+                }).sort_values('Probability', ascending=False)
+
+                fig, ax = plt.subplots(figsize=(8, 5))
+                sns.barplot(data=proba_df, x='Availability', y='Probability', palette="viridis", ax=ax)
+                plt.title('Availability Prediction Confidence')
+                plt.ylim(0, 1)
+                st.pyplot(fig)
     else:
-        st.warning("Model or data not available for prediction. Please check if everything is correctly loaded.")
+        st.warning("Model or data not available. Please check if everything is loaded correctly.")
+# ABOUT PAGE
+elif page == "About":
+    st.header("About Our Project")
+    
+    st.write("""
+        ## Problem Statement
+        
+        Electric Vehicles (EVs) are becoming increasingly popular, but inadequate charging infrastructure remains a major hurdle to mass adoption. This project aims to identify the optimal locations for EV charging stations by analyzing key factors like population density, traffic flow, existing infrastructure, and power availability to ensure maximum utilization and convenience for users.
+        
+        ### Aim
+        
+        - *Strategic Placement*: Identify optimal locations for EV charging stations to maximize accessibility and convenience.
+        - *Data-Driven Decisions*: Leverage key factors like population density, traffic flow, existing infrastructure, and power availability.
+        - *Sustainable Growth*: Support the expansion of EV infrastructure in a scalable and environmentally responsible manner.
+        - *User Satisfaction*: Reduce range anxiety by ensuring better coverage and reliability for EV users.     
+        
+        ### Data Dictionary
+        
+        The dataset contains traffic flow records, including:
+        
+        - *Latitude*: Latitude of the location (geographical coordinate)
+        - *Longitude*: Longitude of the location (geographical coordinate)
+        - *Population Density*: Number of people living per square kilometer
+        - *Traffic Flow*: Average vehicle flow (vehicles per day)
+        - *Existing Infrastructure*: Availability of existing EV stations nearby (count)
+        - *Power Availability*: Availability of sufficient electrical capacity at the location
+        - *Vehicle Type (Encoded)*: Encoded type of common vehicle usage (e.g., Passenger, Commercial)
+        - *Expected Charging Duration*: Average time vehicles spend charging (hours)
+        - *Score*: Calculated score for suitability of placing a new station
+        
+        ### Key Insights
+        
+        - *High Potential Zones*: Locations with **high population density** and **heavy traffic flow** were most favorable for new EV charging stations.
+        - *Infrastructure Gaps*: Several high-demand areas lacked sufficient existing EV infrastructure, highlighting major opportunities for station deployment.
+        - *Power Constraints*: Some otherwise ideal areas were unsuitable due to **insufficient power availability**.
+        - *Vehicle Patterns*: Areas with a higher mix of **passenger vehicles** and **light commercial vehicles** showed the most consistent charging needs.
+        - *Charging Duration Trends*: Longer expected charging durations were more common in suburban regions compared to city centers.
+        
+        ### Model Performance
+        
+        The K-Nearest Neighbors (KNN) model was trained to predict the suitability of locations for EV charging station placement based on key spatial and infrastructure factors.
+        The model successfully identified clusters of high-potential locations, offering **valuable, data-driven support** for EV infrastructure planning.
+
+        - **Accuracy**: ~85% (for classification tasks)
+        - **Mean Squared Error (MSE)**: Low (for regression tasks)
+        - **Model Strengths**: Effective in spatial neighbor-based predictions and simple to interpret for strategic planning.
+    """)
+    
+    st.subheader("Applications")
+    st.write("""
+        - *Traffic Management*: Optimizing signal timings and road usage
+        - *Urban Planning*: Informing infrastructure development decisions
+        - *Environmental Impact*: Reducing emissions through better traffic flow
+        - *Public Transportation*: Adjusting schedules based on predicted congestion
+    """)
+
+    st.subheader("Team Members")
+    st.write("""
+        - *Shreya Chaudhari*: 221061013
+        - *Nithya Cherala*: 221061014
+    """)
+   
+
+# Add footer
+st.sidebar.markdown("---")
+st.sidebar.info(
+    """*Team Members:*  
+    Shreya Chaudhari  
+    Nithya Cherala"""
+)
