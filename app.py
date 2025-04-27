@@ -45,7 +45,7 @@ def clean_duration(x):
 # Load and process data for the model
 def load_data():
     # Load your dataframe (replace with actual path)
-    df1 = pd.read_csv("your_data.csv")  # Adjust with your actual data source
+    df1 = pd.read_csv("final_cleaned.csv")  # Adjust with your actual data source
     cols_to_drop = ['uid', 'name', 'vendor_name', 'address', 'city', 'country',
                     'open', 'close', 'logo_url', 'payment_modes', 'contact_numbers']
     df1_model = df1.drop(columns=cols_to_drop, errors='ignore')
