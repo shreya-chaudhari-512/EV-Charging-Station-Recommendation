@@ -38,7 +38,6 @@ def load_data():
         st.error(f"Error loading data: {e}")
         return None
 
-
 # Process data function
 @st.cache_data
 def process_data(df):
@@ -47,7 +46,7 @@ def process_data(df):
         le_vehicle_type = LabelEncoder()
         df['vehicle_type'] = le_vehicle_type.fit_transform(df['vehicle_type'])
         
-        # Encode the 'target' column (formerly 'install') as 1 or 0
+        # Encode the 'target' column (target) as 1 or 0
         df['target'] = df['target'].map({'Install': 1, 'Don\'t Install': 0})
         
         # Drop any rows with missing values
@@ -64,7 +63,7 @@ def get_model(df):
     try:
         # Select features and target
         X = df[['latitude', 'longitude', 'vehicle_type', 'duration']]
-        y = df['target']  # Use 'target' instead of 'install'
+        y = df['target']  # Use the 'target' column here
         
         # Split data into train and test sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -82,6 +81,7 @@ def get_model(df):
     except Exception as e:
         st.error(f"Error training model: {e}")
         return None, None
+
 
 # Load and process the data
 df = load_data()
