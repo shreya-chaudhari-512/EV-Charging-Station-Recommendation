@@ -1,3 +1,4 @@
+# Import necessary libraries
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -24,114 +25,82 @@ st.markdown("""
 # Sidebar navigation
 page = st.sidebar.selectbox("Navigate", ["Home", "Data Exploration", "Make Prediction", "About"])
 
-# Create a sample dataframe for demonstration
-# Load your dataset
-# Process data function
+# Load dataset
 @st.cache_data
 def load_data():
     try:
-        # Load the data from the repository's relative path
-        df = pd.read_csv('final_cleaned.csv')  # Relative path to the dataset
-        st.sidebar.success("Data loaded successfully!")
+        df = pd.read_csv('final_cleaned.csv')
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return None
 
-# Process data function
+# Process dataset
 @st.cache_data
 def process_data(df):
     try:
-        # Encode 'vehicle_type' using LabelEncoder
         le_vehicle_type = LabelEncoder()
         df['vehicle_type'] = le_vehicle_type.fit_transform(df['vehicle_type'])
-        
-        # Encode the 'target' column (target) as 1 or 0
         df['target'] = df['target'].map({'Install': 1, 'Don\'t Install': 0})
-        
-        # Drop any rows with missing values
         df.dropna(inplace=True)
-        
         return df, le_vehicle_type
     except Exception as e:
         st.error(f"Error processing data: {e}")
         return df, None
 
-# Train or load the model
+# Train and return the model
 @st.cache_resource
 def get_model(df):
     try:
-        # Select features and target
         X = df[['latitude', 'longitude', 'vehicle_type', 'duration']]
-        y = df['target']  # Use the 'target' column here
-        
-        # Split data into train and test sets
+        y = df['target']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        
-        # Scale features
+
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
-        
-        # Train KNN model
+
         model = KNeighborsClassifier(n_neighbors=5)
         model.fit(X_train_scaled, y_train)
-        
+
         return model, scaler
     except Exception as e:
         st.error(f"Error training model: {e}")
         return None, None
 
-
-# Load and process the data
+# Load and prepare data
 df = load_data()
 if df is not None:
     df, le_vehicle_type = process_data(df)
-
-    # Train or load the model
     model, scaler = get_model(df)
 
-# Prediction function
+# Define prediction function
 def make_prediction(model, scaler, le_vehicle_type):
-    if model is not None and scaler is not None:
-        st.subheader("Enter EV Charging Station Parameters")
-        
-        # Input fields for user
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            latitude = st.number_input("Latitude", value=19.0760)
-            longitude = st.number_input("Longitude", value=72.8777)
-            vehicle_type = st.selectbox("Vehicle Type", ['Car', 'Bike', 'Truck', 'Bus'])
-            encoded_vehicle_type = le_vehicle_type.transform([vehicle_type])[0]
-        
-        with col2:
-            duration = st.number_input("Expected Charging Duration (in minutes)", value=30)
-        
-        # Prepare input data for prediction
-        input_data = np.array([[latitude, longitude, encoded_vehicle_type, duration]])
-        
-        # Scale the input data
-        scaled_input = scaler.transform(input_data)
-        
-        # Make prediction
-        prediction = model.predict(scaled_input)[0]
-        
-        # Display prediction result
-        if prediction == 1:
-            st.success("Prediction: Install EV Charging Station")
-        else:
-            st.warning("Prediction: Don't Install EV Charging Station")
-    
-# Run the prediction page
-if st.button("Make Prediction"):
-    make_prediction(model, scaler, le_vehicle_type)
+    st.subheader("Enter EV Charging Station Parameters")
 
-# HOME PAGE
+    col1, col2 = st.columns(2)
+
+    with col1:
+        latitude = st.number_input("Latitude", value=19.0760)
+        longitude = st.number_input("Longitude", value=72.8777)
+        vehicle_type = st.selectbox("Vehicle Type", ['Car', 'Bike', 'Truck', 'Bus'])
+        encoded_vehicle_type = le_vehicle_type.transform([vehicle_type])[0]
+
+    with col2:
+        duration = st.number_input("Expected Charging Duration (in minutes)", value=30)
+
+    input_data = np.array([[latitude, longitude, encoded_vehicle_type, duration]])
+    scaled_input = scaler.transform(input_data)
+    prediction = model.predict(scaled_input)[0]
+
+    if prediction == 1:
+        st.success("Prediction: Install EV Charging Station")
+    else:
+        st.warning("Prediction: Don't Install EV Charging Station")
+
+# Display different pages based on selection
 if page == "Home":
     st.header("Welcome to EV Charging Station Optimization")
 
-    # Display project overview
     st.subheader("Project Overview")
     st.write("""
         This project aims to identify optimal locations for Electric Vehicle (EV) charging stations based on factors such as 
@@ -139,24 +108,59 @@ if page == "Home":
         stations should be installed to maximize efficiency and accessibility, enabling the transition to sustainable transportation.
     """)
 
-    # Display summary statistics if data is available
     if df is not None:
         st.subheader("Dataset Summary")
         col1, col2 = st.columns(2)
+
         with col1:
             st.metric("Total Records", df.shape[0])
-            st.metric("Average Latitude", float(df['latitude'].mean()))
-            st.metric("Average Longitude", float(df['longitude'].mean()))
+            st.metric("Average Latitude", round(df['latitude'].mean(), 4))
+            st.metric("Average Longitude", round(df['longitude'].mean(), 4))
+
         with col2:
             st.metric("Average Vehicle Type", int(df['vehicle_type'].mean()))
-            st.metric("Average Duration", int(df['duration'].mean()))
-            st.metric("Install EV Charger (1/0)", int(df['target'].mean()))  # Average of the target
+            st.metric("Average Duration (min)", int(df['duration'].mean()))
+            st.metric("Install EV Charger (Ratio)", round(df['target'].mean(), 2))
 
-        # Display a sample of the data
         st.write("Sample Data:")
-        st.write(df.head().to_html(), unsafe_allow_html=True)
+        st.dataframe(df.head())
     else:
         st.warning("No data available. Please check if the dataset is correctly loaded.")
+
+elif page == "Make Prediction":
+    if model is not None and scaler is not None and le_vehicle_type is not None:
+        make_prediction(model, scaler, le_vehicle_type)
+    else:
+        st.error("Model not available. Please check data and model training.")
+
+elif page == "Data Exploration":
+    if df is not None:
+        st.header("Data Exploration")
+        st.write("First 10 rows of the dataset:")
+        st.dataframe(df.head(10))
+
+        st.subheader("Feature Distributions")
+        fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+        sns.histplot(df['latitude'], kde=True, ax=axs[0, 0])
+        sns.histplot(df['longitude'], kde=True, ax=axs[0, 1])
+        sns.histplot(df['duration'], kde=True, ax=axs[1, 0])
+        sns.countplot(x='vehicle_type', data=df, ax=axs[1, 1])
+
+        plt.tight_layout()
+        st.pyplot(fig)
+
+    else:
+        st.warning("No data available to explore.")
+
+elif page == "About":
+    st.header("About This Project")
+    st.write("""
+        This system is developed as part of a project to assist urban planners, city councils, and private firms in making data-driven 
+        decisions for EV infrastructure development.
+        
+        **Key Technologies Used:** Python, Streamlit, Scikit-learn, Pandas, Matplotlib, Seaborn.
+    """)
+
 
 # DATA EXPLORATION PAGE
 elif page == "Data Exploration":
