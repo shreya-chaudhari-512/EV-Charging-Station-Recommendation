@@ -47,8 +47,8 @@ def process_data(df):
         le_vehicle_type = LabelEncoder()
         df['vehicle_type'] = le_vehicle_type.fit_transform(df['vehicle_type'])
         
-        # Encode the 'install' column (target) as 1 or 0
-        df['install'] = df['install'].map({'Install': 1, 'Don\'t Install': 0})
+        # Encode the 'target' column (formerly 'install') as 1 or 0
+        df['target'] = df['target'].map({'Install': 1, 'Don\'t Install': 0})
         
         # Drop any rows with missing values
         df.dropna(inplace=True)
@@ -64,7 +64,7 @@ def get_model(df):
     try:
         # Select features and target
         X = df[['latitude', 'longitude', 'vehicle_type', 'duration']]
-        y = df['install']
+        y = df['target']  # Use 'target' instead of 'install'
         
         # Split data into train and test sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -150,7 +150,7 @@ if page == "Home":
         with col2:
             st.metric("Average Vehicle Type", int(df['vehicle_type'].mean()))
             st.metric("Average Duration", int(df['duration'].mean()))
-            st.metric("Install EV Charger (1/0)", int(df['install'].mean()))  # Average of the target
+            st.metric("Install EV Charger (1/0)", int(df['target'].mean()))  # Average of the target
 
         # Display a sample of the data
         st.write("Sample Data:")
@@ -287,101 +287,5 @@ elif page == "Make Prediction":
                     plt.ylim(0, 1)
                     plt.xticks(rotation=45)
                     st.pyplot(fig)
-                
-                # Feature importance (Optional note)
-                st.subheader("Note")
-                st.write("""
-                    Since K-Nearest Neighbors (KNN) is a distance-based model, traditional feature importance does not directly apply.
-                    Model decisions are based on proximity to nearby training examples.
-                """)
     else:
-        st.warning("Model or data not available. Please check if the dataset and model are correctly loaded.")
-
-# ABOUT PAGE
-elif page == "About":
-    st.header("About Our Project")
-    
-    st.write("""
-        ## Problem Statement
-        
-        Electric Vehicles (EVs) are becoming increasingly popular, but inadequate charging infrastructure remains a major hurdle to mass adoption. This project aims to identify the optimal locations for EV charging stations by analyzing key factors like population density, traffic flow, existing infrastructure, and power availability to ensure maximum utilization and convenience for users.
-        
-        ### Aim
-        
-        - *Strategic Placement*: Identify optimal locations for EV charging stations to maximize accessibility and convenience.
-        - *Data-Driven Decisions*: Leverage key factors like population density, traffic flow, existing infrastructure, and power availability.
-        - *Sustainable Growth*: Support the expansion of EV infrastructure in a scalable and environmentally responsible manner.
-        - *User Satisfaction*: Reduce range anxiety by ensuring better coverage and reliability for EV users.     
-        
-        ### Data Dictionary
-        
-        The dataset contains traffic flow records, including:
-        
-        - *Latitude*: Latitude of the location (geographical coordinate)
-        - *Longitude*: Longitude of the location (geographical coordinate)
-        - *Population Density*: Number of people living per square kilometer
-        - *Traffic Flow*: Average vehicle flow (vehicles per day)
-        - *Existing Infrastructure*: Availability of existing EV stations nearby (count)
-        - *Power Availability*: Availability of sufficient electrical capacity at the location
-        - *Vehicle Type (Encoded)*: Encoded type of common vehicle usage (e.g., Passenger, Commercial)
-        - *Expected Charging Duration*: Average time vehicles spend charging (hours)
-        - *Score*: Calculated score for suitability of placing a new station
-        
-        ### Key Insights
-        
-        - *High Potential Zones*: Locations with **high population density** and **heavy traffic flow** were most favorable for new EV charging stations.
-        - *Infrastructure Gaps*: Several high-demand areas lacked sufficient existing EV infrastructure, highlighting major opportunities for station deployment.
-        - *Power Constraints*: Some otherwise ideal areas were unsuitable due to **insufficient power availability**.
-        - *Vehicle Patterns*: Areas with a higher mix of **passenger vehicles** and **light commercial vehicles** showed the most consistent charging needs.
-        - *Charging Duration Trends*: Longer expected charging durations were more common in suburban regions compared to city centers.
-        
-        ### Model Performance
-        
-        The K-Nearest Neighbors (KNN) model was trained to predict the suitability of locations for EV charging station placement based on key spatial and infrastructure factors.
-        The model successfully identified clusters of high-potential locations, offering **valuable, data-driven support** for EV infrastructure planning.
-
-        - **Accuracy**: ~85% (for classification tasks)
-        - **Mean Squared Error (MSE)**: Low (for regression tasks)
-        - **Model Strengths**: Effective in spatial neighbor-based predictions and simple to interpret for strategic planning.
-    """)
-    
-    st.subheader("Applications")
-    st.write("""
-        - *Traffic Management*: Optimizing signal timings and road usage
-        - *Urban Planning*: Informing infrastructure development decisions
-        - *Environmental Impact*: Reducing emissions through better traffic flow
-        - *Public Transportation*: Adjusting schedules based on predicted congestion
-    """)
-
-    st.subheader("Team Members")
-    st.write("""
-        - *Shreya Chaudhari*: 221061013
-        - *Nithya Cherala*: 221061014
-    """)
-   
-# Add footer
-st.sidebar.markdown("---")
-st.sidebar.info(
-    """*Team Members:*  
-    Shreya Chaudhari  
-    Nithya Cherala"""
-)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        st.warning("Model or data not available for prediction. Please check if everything is correctly loaded.")
