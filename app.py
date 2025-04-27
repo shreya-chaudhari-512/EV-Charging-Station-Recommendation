@@ -1,38 +1,30 @@
-# app.py
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
 
-st.set_page_config(page_title="EV Charger Availability Prediction", layout="centered")
+# Set up page configuration
+st.set_page_config(
+    page_title="EV Charging Station Optimization",
+    page_icon="🔋",
+    layout="wide"
+)
 
-st.title("⚡ EV Charging Station - Availability Prediction")
+# Application title and description
+st.title("EV Charging Station Optimization System")
+st.markdown("""
+    This application predicts whether an EV charging station should be installed based on location coordinates, vehicle type, and expected charging duration.
+    Use the sidebar to navigate through different sections of the app.
+""")
 
-# Step 0: Load your dataset
-try:
-    df1 = pd.read_csv('final_cleaned.csv')  # <-- Correct relative path
-    st.success("✅ Data Loaded Successfully.")
-except Exception as e:
-    st.error(f"❌ Error loading data: {e}")
-    st.stop()
+# Sidebar for navigation
+st.sidebar.header("Navigation")
+page = st.sidebar.selectbox("Select a page", ["Home", "Prediction", "Model Performance"])
 
-# Step 1: Drop unnecessary text-heavy columns
-cols_to_drop = ['uid', 'name', 'vendor_name', 'address', 'city', 'country',
-                'open', 'close', 'logo_url', 'payment_modes', 'contact_numbers']
-df1_model = df1.drop(columns=cols_to_drop, errors='ignore')
-
-# Step 2: Encode categorical columns
-cols_to_encode = ['power_type', 'type', 'vehicle_type', 'zone', 'station_type', 'staff']
-le = LabelEncoder()
-for col in cols_to_encode:
-    if col in df1_model.columns:
-        df1_model[col] = le.fit_transform(df1_model[col].astype(str))
-
-# Step 3: Clean 'cost_per_unit' column
+# Function to clean 'cost_per_unit' column
 def clean_cost(x):
     if isinstance(x, str):
         x = x.replace('₹', '').replace('per unit', '').strip()
@@ -41,10 +33,7 @@ def clean_cost(x):
     except:
         return 0.0
 
-if 'cost_per_unit' in df1_model.columns:
-    df1_model['cost_per_unit'] = df1_model['cost_per_unit'].apply(clean_cost)
-
-# Step 4: Clean 'duration' column
+# Function to clean 'duration' column
 def clean_duration(x):
     if isinstance(x, str) and 'days' in x:
         return pd.to_timedelta(x).total_seconds()
@@ -53,58 +42,116 @@ def clean_duration(x):
     except:
         return 0.0
 
-if 'duration' in df1_model.columns:
+# Load and process data for the model
+def load_data():
+    # Load your dataframe (replace with actual path)
+    df1 = pd.read_csv("your_data.csv")  # Adjust with your actual data source
+    cols_to_drop = ['uid', 'name', 'vendor_name', 'address', 'city', 'country',
+                    'open', 'close', 'logo_url', 'payment_modes', 'contact_numbers']
+    df1_model = df1.drop(columns=cols_to_drop, errors='ignore')
+
+    # Encode categorical columns
+    cols_to_encode = ['power_type', 'type', 'vehicle_type', 'zone', 'station_type', 'staff']
+    le = LabelEncoder()
+    for col in cols_to_encode:
+        df1_model[col] = le.fit_transform(df1_model[col])
+
+    # Clean 'cost_per_unit' and 'duration'
+    df1_model['cost_per_unit'] = df1_model['cost_per_unit'].apply(clean_cost)
     df1_model['duration'] = df1_model['duration'].apply(clean_duration)
 
-# Step 5: Define X (features) and y (target)
-selected_features = ['latitude', 'longitude', 'vehicle_type', 'duration']
-X = df1_model[selected_features]
+    # Define features and target variable
+    selected_features = ['latitude', 'longitude', 'vehicle_type', 'duration']
+    X = df1_model[selected_features]
+    y = df1_model['available']
 
-# Target variable
-y = df1_model['available']
+    # Split data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-# Step 6: Drop rows where y is NaN
-valid_rows = ~y.isna()
-X = X[valid_rows]
-y = y[valid_rows]
+    # Train the KNN model
+    knn_clf = KNeighborsClassifier(n_neighbors=5)
+    knn_clf.fit(X_train, y_train)
 
-# Step 7: Train-Test Split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    return knn_clf
 
-# Step 8: Train KNN Model
-knn_clf = KNeighborsClassifier(n_neighbors=5)
-knn_clf.fit(X_train, y_train)
+# Prediction page
+def predict_availability(knn_clf):
+    st.title("EV Station Availability Prediction")
+    st.write("Please enter the details of the EV station:")
 
-# Step 9: Evaluate Model
-y_pred_knn = knn_clf.predict(X_test)
+    # User input
+    user_latitude = st.number_input("Enter latitude", format="%.6f")
+    user_longitude = st.number_input("Enter longitude", format="%.6f")
+    user_vehicle_type = st.number_input("Enter vehicle type (encoded integer)", min_value=0, step=1)
+    user_duration = st.number_input("Enter duration (in seconds)", format="%.0f")
 
-accuracy = accuracy_score(y_test, y_pred_knn)
-report = classification_report(y_test, y_pred_knn)
+    # Predict button
+    if st.button("Predict Availability"):
+        try:
+            # Prepare input for prediction
+            user_input = [[user_latitude, user_longitude, user_vehicle_type, user_duration]]
+            
+            # Prediction
+            user_prediction = knn_clf.predict(user_input)
+            availability = "Available" if user_prediction[0] == 1 else "Not Available"
+            st.success(f"Predicted Availability: {availability} (1 = Available, 0 = Not Available)")
+        except Exception as e:
+            st.error(f"Error in prediction: {e}")
 
-st.subheader("🔎 Model Evaluation Results")
-st.write(f"**Accuracy:** {accuracy:.4f}")
-st.text("Classification Report:")
-st.text(report)
+# Model performance page
+def model_performance(knn_clf):
+    st.title("Model Performance")
+    st.write("Here is the performance evaluation of the KNN classifier on the test data.")
 
-# Step 10: Prediction Form
-st.subheader("🚗 Make a Prediction")
-
-with st.form("prediction_form"):
-    user_latitude = st.number_input("Enter Latitude:", format="%.6f")
-    user_longitude = st.number_input("Enter Longitude:", format="%.6f")
-    user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
-    user_duration = st.number_input("Enter Duration (in seconds):", format="%.2f")
-
-    submitted = st.form_submit_button("Predict Availability")
-
-if submitted:
+    # Model evaluation
     try:
-        user_input = np.array([[user_latitude, user_longitude, user_vehicle_type, user_duration]])
-        user_prediction = knn_clf.predict(user_input)
+        df1 = pd.read_csv("your_data.csv")  # Replace with actual data path
+        cols_to_drop = ['uid', 'name', 'vendor_name', 'address', 'city', 'country',
+                        'open', 'close', 'logo_url', 'payment_modes', 'contact_numbers']
+        df1_model = df1.drop(columns=cols_to_drop, errors='ignore')
 
-        if user_prediction[0] == 1:
-            st.success("✅ Prediction: Charging Station Likely Available")
-        else:
-            st.error("🚫 Prediction: Charging Station Likely NOT Available")
+        # Encode categorical columns
+        cols_to_encode = ['power_type', 'type', 'vehicle_type', 'zone', 'station_type', 'staff']
+        le = LabelEncoder()
+        for col in cols_to_encode:
+            df1_model[col] = le.fit_transform(df1_model[col])
+
+        # Clean 'cost_per_unit' and 'duration'
+        df1_model['cost_per_unit'] = df1_model['cost_per_unit'].apply(clean_cost)
+        df1_model['duration'] = df1_model['duration'].apply(clean_duration)
+
+        # Define features and target variable
+        selected_features = ['latitude', 'longitude', 'vehicle_type', 'duration']
+        X = df1_model[selected_features]
+        y = df1_model['available']
+
+        # Split data into train and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+        # Predict using the trained model
+        y_pred_knn = knn_clf.predict(X_test)
+
+        # Evaluate the model
+        accuracy = accuracy_score(y_test, y_pred_knn)
+        report = classification_report(y_test, y_pred_knn)
+
+        st.write(f"Accuracy: {accuracy:.4f}")
+        st.text("Classification Report:")
+        st.text(report)
+
     except Exception as e:
-        st.error(f"Prediction error: {e}")
+        st.error(f"Error in model evaluation: {e}")
+
+# Main app code
+if __name__ == "__main__":
+    # Load the model
+    knn_clf = load_data()
+
+    # Navigate through pages based on selection
+    if page == "Home":
+        st.write("Welcome to the EV Charging Station Optimization app!")
+    elif page == "Prediction":
+        predict_availability(knn_clf)
+    elif page == "Model Performance":
+        model_performance(knn_clf)
+
