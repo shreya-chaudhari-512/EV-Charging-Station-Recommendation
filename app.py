@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
-
+from sklearn.neighbors import KNeighborsClassifier
 
 # Set page configuration
 st.set_page_config(
@@ -127,6 +126,7 @@ def make_prediction(model, scaler, le_vehicle_type):
 # Run the prediction page
 if st.button("Make Prediction"):
     make_prediction(model, scaler, le_vehicle_type)
+
 # HOME PAGE
 if page == "Home":
     st.header("Welcome to EV Charging Station Optimization")
@@ -157,7 +157,6 @@ if page == "Home":
         st.write(df.head().to_html(), unsafe_allow_html=True)
     else:
         st.warning("No data available. Please check if the dataset is correctly loaded.")
-
 
 # DATA EXPLORATION PAGE
 elif page == "Data Exploration":
@@ -215,43 +214,7 @@ elif page == "Data Exploration":
 elif page == "Make Prediction":
     st.header("EV Charging Station Installation Prediction")
     
-    if df1_model is not None and knn_clf is not None:
-        # Create input form for prediction
-        st.subheader("Enter Location and Vehicle Parameters")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Latitude input
-            latitude = st.number_input("Latitude", format="%.6f")
-            
-            # Longitude input
-            longitude = st.number_input("Longitude", format="%.6f")
-        
-        with col2:
-            # Vehicle Type input (encoded manually)
-            vehicle_type_encoded = st.number_input("Vehicle Type (Encoded)", min_value=0, step=1)
-            
-            # Expected Charging Duration (in seconds)
-            duration_seconds = st.number_input("Expected Charging Duration (Seconds)", min_value=0.0, step=3600.0)
-        
-        # Show entered data
-        st.metric("Charging Duration (Hours)", round(duration_seconds / 3600, 2))
-        
-        # Show Vehicle Type Encoding Reference
-        st.subheader("Vehicle Type Encoding Reference")
-        st.write("""
-        - 0: Two-Wheeler
-        - 1: Three-Wheeler
-        - 2: Four-Wheeler
-        - 3: Heavy Vehicle
-        """)
-        
-# PREDICTION PAGE
-elif page == "Make Prediction":
-    st.header("EV Charging Station Installation Prediction")
-    
-    if df is not None and knn_clf is not None:
+    if df is not None and model is not None:
         # Create input form for prediction
         st.subheader("Enter Location and Vehicle Parameters")
         
@@ -293,7 +256,7 @@ elif page == "Make Prediction":
                 input_data = np.array([[latitude, longitude, vehicle_type_encoded, duration_seconds]])
                 
                 # Make prediction
-                prediction = knn_clf.predict(input_data)[0]
+                prediction = model.predict(input_data)[0]
                 
                 # Display prediction
                 st.subheader("Prediction Result")
@@ -303,10 +266,10 @@ elif page == "Make Prediction":
                     st.error("❌ Recommendation: Do NOT Install EV Charging Point.")
                 
                 # Show prediction probabilities if available
-                if hasattr(knn_clf, "predict_proba"):
+                if hasattr(model, "predict_proba"):
                     st.subheader("Prediction Confidence")
                     
-                    prediction_proba = knn_clf.predict_proba(input_data)[0]
+                    prediction_proba = model.predict_proba(input_data)[0]
                     
                     proba_df = pd.DataFrame({
                         'Decision': ['Do NOT Install', 'Install'],
@@ -333,7 +296,6 @@ elif page == "Make Prediction":
                 """)
     else:
         st.warning("Model or data not available. Please check if the dataset and model are correctly loaded.")
-        
 
 # ABOUT PAGE
 elif page == "About":
@@ -397,7 +359,6 @@ elif page == "About":
         - *Nithya Cherala*: 221061014
     """)
    
-
 # Add footer
 st.sidebar.markdown("---")
 st.sidebar.info(
@@ -405,6 +366,7 @@ st.sidebar.info(
     Shreya Chaudhari  
     Nithya Cherala"""
 )
+
 
 
 
