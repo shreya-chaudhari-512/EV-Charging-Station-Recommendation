@@ -141,25 +141,50 @@ if page == "Home":
     st.title("EV Charging Station Optimization System")
     st.markdown("""
         <h3 style='color:#4CAF50;'>Welcome to the Future of Electric Vehicle Infrastructure! ⚡</h3>
-        <p>This web app leverages data-driven insights to predict the viability of installing EV charging stations.</p>
-
-        ### How It Works:
-        - **Enter** latitude, longitude, vehicle type, and estimated charging duration
-        - **Predict** feasibility instantly!
-
-        ### Why It Matters:
-        - **Accelerating EV adoption**
-        - **Environment-friendly growth**
-        - **Enhanced user satisfaction**
+        <p style='font-size:16px;'>This intelligent system leverages <b>machine learning</b> to recommend the best locations for EV charging station installations based on real-world data.</p>
     """, unsafe_allow_html=True)
+
+    st.divider()
+
+    st.markdown("### How It Works")
+    st.markdown("""
+    - 🔍 **Input**: Enter the latitude, longitude, vehicle type, and estimated charging duration.
+    - 🧠 **Predict**: Our KNN-based model predicts the feasibility of installing an EV charger at that location.
+    - 📈 **Decision Support**: Helps urban planners and businesses make smarter infrastructure investments.
+    """)
+
+    st.divider()
+
+    st.markdown("### Why It Matters")
+    st.success("""
+    - Accelerates electric vehicle adoption across cities.
+    - Promotes sustainable and eco-friendly transportation.
+    - Reduces "range anxiety" among EV users.
+    - Optimizes public and private investments.
+    """)
+
+    st.divider()
 
     with st.expander("Model Performance Metrics"):
         y_pred = knn_model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         report = classification_report(y_test, y_pred)
-        st.metric(label="Model Accuracy", value=f"{accuracy:.2%}")
+
+        st.metric(label=" Model Accuracy", value=f"{accuracy:.2%}")
         st.text("Detailed Classification Report:")
         st.code(report, language='text')
+
+    st.divider()
+
+    st.markdown("### Try It Out!")
+    st.info("""
+    Ready to explore?  
+    ➡ Head over to the **Predict** page and test different coordinates and vehicle types!  
+    See where the future of EV charging is headed.
+    """)
+
+    st.balloons()  # 🎈 small animation when user opens the home page
+
 
 # ---------------------------------------------------------------
 # 📊 EDA Page
@@ -174,16 +199,39 @@ elif page == "EDA":
     df1_cleaned = df1_cleaned.fillna(df1_cleaned.mean())
 
     # Overview
-    st.subheader("First Few Rows")
+    st.subheader("🧹 First Few Rows of Cleaned Data")
     st.write(df1_cleaned.head())
 
-    st.subheader("Missing Data")
+    st.divider()
+
+    st.subheader("🛠️ Missing Data Overview")
     st.bar_chart(df1.isnull().sum())
 
-    st.subheader("Correlation Heatmap")
-    fig, ax = plt.subplots(figsize=(8, 5))
-    sns.heatmap(df1_cleaned.corr(), annot=True, cmap="coolwarm", ax=ax)
+    st.divider()
+
+    st.subheader("🔗 Top Feature Correlations")
+
+    # Calculate correlations
+    corr_matrix = df1_cleaned.corr()
+
+    # Take the absolute value and unstack
+    corr_pairs = corr_matrix.abs().unstack()
+
+    # Remove self-correlations
+    corr_pairs = corr_pairs[corr_pairs != 1]
+
+    # Sort correlations and take the top 10
+    top_corr = corr_pairs.sort_values(ascending=False).drop_duplicates().head(10)
+
+    # Plot the top correlated feature pairs
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.heatmap(df1_cleaned[top_corr.index.get_level_values(0).unique()].corr(),
+                annot=True, cmap="YlGnBu", linewidths=0.5, cbar_kws={"shrink": 0.75}, square=True, fmt=".2f")
+    ax.set_title("Top Correlated Features Heatmap", fontsize=16, fontweight='bold')
     st.pyplot(fig)
+
+    st.info("✅ Only the strongest feature correlations are shown to avoid clutter!")
+
 # ---------------------------------------------------------------
 # 🚗 Make Prediction Page
 # ---------------------------------------------------------------
@@ -244,29 +292,58 @@ elif page == "Make Prediction":
 # ---------------------------------------------------------------
 # ℹ️ About Page
 # ---------------------------------------------------------------
+
 elif page == "About":
     st.title("About Our EV Charging Station Optimization Project")
+
     st.write("""
-        ## Problem Statement
-        We aim to address the demand-supply gap in EV infrastructure using data-driven approaches.
+    ## Problem Statement
+    With the global push towards electric vehicle (EV) adoption, the lack of accessible and well-distributed EV charging infrastructure presents a significant bottleneck. Our project aims to close the demand-supply gap by identifying optimal locations for installing new EV charging stations through data-driven analysis and machine learning techniques.
 
-        ## Goals:
-        - Strategic placement of charging stations
-        - Enhance EV adoption and accessibility
+    ## Project Objectives
+    - **Strategic Placement:** Recommend the best locations for installing EV charging stations based on multiple factors including vehicle density, traffic patterns, and existing infrastructure.
+    - **Promote EV Adoption:** Support the transition to electric vehicles by reducing range anxiety and improving charging accessibility.
+    - **Efficient Resource Allocation:** Help governments, municipalities, and private companies invest wisely in EV infrastructure.
 
-        ## Data Dictionary:
-        - Latitude, Longitude
-        - Vehicle Type (encoded)
-        - Charging Duration
-        - Target: Station Install Feasibility
+    ## Data Dictionary
+    Our model was trained on a cleaned and processed dataset with the following key features:
+    - **Latitude** *(float)*: Geographical latitude of the potential installation site.
+    - **Longitude** *(float)*: Geographical longitude of the site.
+    - **Vehicle Type** *(integer encoded)*: Encoded values representing different categories of vehicles (e.g., Passenger Car, Light Commercial Vehicle).
+    - **Expected Charging Duration** *(float)*: Anticipated duration (in hours) an EV would occupy the charging station.
+    - **Target (Install/Don't Install)** *(binary)*: Model output (1 = Feasible for Installation, 0 = Not Feasible).
 
-        ## Key Insights:
-        - High-density zones show best potential
-        - Passenger cars & LCVs dominate charging needs
+    ## Methodology Overview
+    - **Data Preprocessing:** Label encoding, feature scaling, and cleaning were performed.
+    - **Model Selection:** K-Nearest Neighbors (KNN) was chosen after comparing multiple models due to its simplicity, robustness, and strong performance with spatial data.
+    - **Model Evaluation:** K-Fold Cross-Validation and extensive testing ensured model reliability.
+    - **Insights Extraction:** Areas with high traffic flow and passenger vehicle dominance emerged as prime locations.
+
+    ## Key Insights
+    - **High-Density Zones:** Urban areas with dense vehicle presence offer the highest ROI for installing new charging stations.
+    - **Dominant Vehicle Types:** Passenger cars and Light Commercial Vehicles (LCVs) account for the majority of predicted charging demand.
+    - **Charging Duration Patterns:** Most users prefer medium to short-duration charging, influencing the type of chargers to be deployed.
+
+    ## Future Enhancements
+    - Integration of real-time traffic and power grid data.
+    - Adoption of advanced models like Random Forest or XGBoost for improved prediction.
+    - Dynamic recommendation system based on live data feeds.
+
+    ## Technologies Used
+    - Python (Pandas, NumPy, Scikit-learn)
+    - Streamlit (for frontend deployment)
+    - Machine Learning (KNN classifier)
+    - Data Visualization (Matplotlib, Seaborn)
+
+    ---
     """)
 
-    st.subheader("Team Members")
+    st.subheader("Meet Our Team")
     st.write("""
-        - Shreya Chaudhari (221061013)
-        - Nithya Cherala (221061014)
+    **Project Contributors:**
+    - Shreya Chaudhari (221061013)
+    - Nithya Cherala (221061014)
+
+    We are passionate about using data science and machine learning to solve real-world challenges and contribute to the future of sustainable transportation.
     """)
+
