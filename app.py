@@ -211,41 +211,122 @@ if page == "EDA":
     missing_data = df1.isnull().sum()
     st.bar_chart(missing_data)
 
-    # Show a correlation heatmap between numeric columns
-    st.subheader("Correlation Heatmap")
-    correlation_matrix = df1.corr()
-    fig, ax = plt.subplots(figsize=(10, 7))
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', ax=ax)
+    # ---------------------------------------------------------------
+# 📥 Load Dataset
+# ---------------------------------------------------------------
+@st.cache_data
+def load_data():
+    return pd.read_csv('final_cleaned.csv')  # <- your correct path!
+
+# Load data
+try:
+    df1 = load_data()
+except Exception as e:
+    st.error(f"❌ Error loading data: {e}")
+    st.stop()
+
+# ---------------------------------------------------------------
+# 🛠️ Data Preprocessing for EDA
+# ---------------------------------------------------------------
+def clean_data(df):
+    """Clean non-numeric columns and handle missing values."""
+    non_numeric_columns = df.select_dtypes(exclude=[np.number]).columns
+    df[non_numeric_columns] = df[non_numeric_columns].apply(pd.to_numeric, errors='coerce')  # Convert non-numerics to NaN
+    
+    # Handle missing data (optional: fill with mean or drop)
+    df = df.fillna(df.mean())  # Fill NaN with mean (you can also drop NaNs using dropna() if needed)
+    
+    return df
+
+# Clean the dataset
+df1_cleaned = clean_data(df1)
+
+# ---------------------------------------------------------------
+# 📊 EDA Visualizations
+# ---------------------------------------------------------------
+
+# Display general information about the dataset
+st.header("📊 Exploratory Data Analysis (EDA)")
+
+# Dataset Info
+st.subheader("Dataset Information")
+st.write(df1_cleaned.info())
+
+# Basic statistics
+st.subheader("Basic Statistics")
+st.write(df1_cleaned.describe())
+
+# Show first few rows of the dataset
+st.subheader("First Few Rows of the Data")
+st.write(df1_cleaned.head())
+
+# ---------------------------------------------------------------
+# 🔢 Distribution Plots for Numerical Features
+# ---------------------------------------------------------------
+
+# Histogram for numerical features
+st.subheader("Distribution of Numerical Features")
+
+numerical_columns = df1_cleaned.select_dtypes(include=[np.number]).columns
+
+# Show histograms for all numerical features
+for col in numerical_columns:
+    st.subheader(f"Histogram of {col}")
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.histplot(df1_cleaned[col], kde=True, ax=ax, color="skyblue")
     st.pyplot(fig)
 
-    # Show Distribution of `vehicle_type`
-    st.subheader("Distribution of Vehicle Types")
-    vehicle_type_dist = df1['vehicle_type'].value_counts()
-    fig = px.pie(values=vehicle_type_dist, names=vehicle_type_dist.index, title="Vehicle Type Distribution")
-    st.plotly_chart(fig)
+# ---------------------------------------------------------------
+# 🔥 Boxplots to Identify Outliers
+# ---------------------------------------------------------------
+st.subheader("Boxplot for Numerical Features")
 
-    # Distribution of `duration`
-    st.subheader("Charging Duration Distribution")
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.histplot(df1['duration'], kde=True, ax=ax)
+for col in numerical_columns:
+    st.subheader(f"Boxplot of {col}")
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.boxplot(data=df1_cleaned, x=col, ax=ax, color="orange")
     st.pyplot(fig)
 
-    # Show Target Distribution (Install/Don't Install)
-    st.subheader("Target Variable Distribution (Install/Don't Install)")
-    install_dist = df1['install'].value_counts()
-    fig = px.pie(values=install_dist, names=install_dist.index, title="Install/Don't Install Distribution")
-    st.plotly_chart(fig)
+# ---------------------------------------------------------------
+# 🔍 Correlation Heatmap
+# ---------------------------------------------------------------
+st.subheader("Correlation Heatmap")
 
-    # Boxplot of Charging Duration by Vehicle Type
-    st.subheader("Charging Duration by Vehicle Type")
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.boxplot(x='vehicle_type', y='duration', data=df1, ax=ax)
+# Compute correlation matrix
+correlation_matrix = df1_cleaned.corr()
+
+# Plot the heatmap
+fig, ax = plt.subplots(figsize=(10, 7))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+# ---------------------------------------------------------------
+# 🧭 Pairplot for Relationships
+# ---------------------------------------------------------------
+st.subheader("Pairplot for Relationships between Features")
+fig = sns.pairplot(df1_cleaned[numerical_columns], height=2.5)
+st.pyplot(fig)
+
+# ---------------------------------------------------------------
+# 🛠️ Feature-wise Analysis (Optional)
+# ---------------------------------------------------------------
+# For example, let's explore "vehicle_type" if it's encoded
+if 'vehicle_type' in df1_cleaned.columns:
+    st.subheader("Vehicle Type Distribution")
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.countplot(x='vehicle_type', data=df1_cleaned, ax=ax, palette='Set2')
     st.pyplot(fig)
 
-    # Label Encoding Process
-    st.subheader("Label Encoding Process")
-    st.write("For categorical columns like `vehicle_type`, `power_type`, etc., label encoding was applied to transform them into numerical values. Here's an example for `vehicle_type`:")
-    st.write(df1[['vehicle_type']].head())
+# ---------------------------------------------------------------
+# Conclusion
+# ---------------------------------------------------------------
+st.markdown("""
+    ### Conclusion:
+    - In this EDA, we explored the dataset to identify key trends and relationships between features.
+    - We visualized the distributions of numerical features, checked for outliers, and explored correlations.
+    - We also plotted relationships between key variables to gain insights into the dataset.
+""")
+    
 
 # 🚗 Prediction Page
 elif page == "Make Prediction":
