@@ -148,9 +148,9 @@ if page == "Home":
 
     st.markdown("### How It Works")
     st.markdown("""
-    - 🔍 **Input**: Enter the latitude, longitude, vehicle type, and estimated charging duration.
-    - 🧠 **Predict**: Our KNN-based model predicts the feasibility of installing an EV charger at that location.
-    - 📈 **Decision Support**: Helps urban planners and businesses make smarter infrastructure investments.
+    - **Input**: Enter the latitude, longitude, vehicle type, and estimated charging duration.
+    - **Predict**: Our KNN-based model predicts the feasibility of installing an EV charger at that location.
+    - **Decision Support**: Helps urban planners and businesses make smarter infrastructure investments.
     """)
 
     st.divider()
@@ -183,7 +183,7 @@ if page == "Home":
     See where the future of EV charging is headed.
     """)
 
-    st.balloons()  # 🎈 small animation when user opens the home page
+      # 🎈 small animation when user opens the home page
 
 
 # ---------------------------------------------------------------
@@ -199,17 +199,17 @@ elif page == "EDA":
     df1_cleaned = df1_cleaned.fillna(df1_cleaned.mean())
 
     # Overview
-    st.subheader("🧹 First Few Rows of Cleaned Data")
+    st.subheader("First Few Rows of Cleaned Data")
     st.write(df1_cleaned.head())
 
     st.divider()
 
-    st.subheader("🛠️ Missing Data Overview")
+    st.subheader("Missing Data Overview")
     st.bar_chart(df1.isnull().sum())
 
     st.divider()
 
-    st.subheader("🔗 Top Feature Correlations")
+    st.subheader("Top Feature Correlations")
 
     # Calculate correlations
     corr_matrix = df1_cleaned.corr()
@@ -230,7 +230,7 @@ elif page == "EDA":
     ax.set_title("Top Correlated Features Heatmap", fontsize=16, fontweight='bold')
     st.pyplot(fig)
 
-    st.info("✅ Only the strongest feature correlations are shown to avoid clutter!")
+    st.info("Only the strongest feature correlations are shown to avoid clutter!")
 
 # ---------------------------------------------------------------
 # 🚗 Make Prediction Page
@@ -271,7 +271,7 @@ elif page == "Make Prediction":
             user_vehicle = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
-        submitted = st.form_submit_button("🔮 Predict")
+        submitted = st.form_submit_button("Predict")
 
     if submitted:
         try:
