@@ -330,13 +330,13 @@ st.markdown("""
 
 # 🚗 Prediction Page
 elif page == "Make Prediction":
-    st.title("Can You Install an EV Charging Station Here?")
+    st.title("🚗 Can You Install an EV Charging Station Here?")
 
     col1, col2 = st.columns(2)
 
     # --- 📋 Left Column: Reference Locations (Maharashtra) ---
     with col1:
-        st.subheader("Reference Locations (Maharashtra)")
+        st.subheader("🛣️ Reference Locations (Maharashtra)")
         reference_data = pd.DataFrame({
             "Location": [
                 "Marine Drive, Mumbai", 
@@ -352,7 +352,7 @@ elif page == "Make Prediction":
 
     # --- 🚗 Right Column: Vehicle Type Encoding Reference ---
     with col2:
-        st.subheader("Vehicle Type Encoding Reference")
+        st.subheader("📋 Vehicle Type Encoding Reference")
         vehicle_mapping = {
             0: 'Two Wheeler',
             1: 'Three Wheeler',
@@ -375,7 +375,7 @@ elif page == "Make Prediction":
             user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
-        submitted = st.form_submit_button("Predict")
+        submitted = st.form_submit_button("🔮 Predict")
 
     # --- 🎯 Prediction Result ---
     if submitted:
@@ -383,14 +383,14 @@ elif page == "Make Prediction":
             user_input = np.array([[user_latitude, user_longitude, user_vehicle_type, user_duration]])
             user_prediction = knn_model.predict(user_input)
 
-            st.subheader("Prediction Result:")
+            st.subheader("🎯 Prediction Result:")
             if user_prediction[0] == 1:
-                st.success("Yes, you can install a station here!")
+                st.success("✅ Yes, you can install a station here!")
             else:
-                st.error("Likely not a suitable place.")
+                st.error("🚫 Likely not a suitable place.")
 
             # 📍 Show Location on Map
-            st.subheader("Location on Map:")
+            st.subheader("📍 Location on Map:")
             map_data = pd.DataFrame({
                 'latitude': [user_latitude],
                 'longitude': [user_longitude]
