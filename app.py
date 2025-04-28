@@ -18,21 +18,67 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- Global Background Image + White Overlay ---
+# --- Apply Fonts and Button Styling ---
 st.markdown(
     """
     <style>
-    .stApp {
-        background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)),
-                    url('https://images.unsplash.com/photo-1549921296-3a5458a92c24?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
-        background-size: cover;
-        background-attachment: fixed;
-        background-position: center;
+    /* Global Font Settings */
+    body, h1, h2, h3, h4, p {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Sidebar Font */
+    section[data-testid="stSidebar"] {
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Button Styling (Rounded + Shadow) */
+    .stButton>button {
+        border-radius: 12px;
+        padding: 10px 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    /* Button Hover Effects */
+    .stButton>button:hover {
+        background-color: #45a049;
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Text for Sections */
+    .main p {
+        color: #333333;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    /* Info Boxes (Card-Like Design) */
+    .st-expanderHeader {
+        background-color: #f4f4f4;
+        color: #333333;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    /* Enhance Links */
+    a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 
 # ---------------------------------------------------------------
@@ -117,21 +163,21 @@ page = st.sidebar.radio("Go to", ["Home", "Make Prediction", "About"])
 if page == "Home":
     st.title("🔋 EV Charging Station Optimization System")
     st.markdown("""
-        <h3 style='color:#4CAF50;'>Welcome to the Future of EV Infrastructure! 🚗⚡</h3>
-        <p>This app helps predict whether installing a new EV charging station at a given location would be beneficial or not.</p>
-        
+        <h3 style='color:#4CAF50;'>Welcome to the Future of Electric Vehicle Infrastructure! ⚡</h3>
+        <p>This web app leverages data-driven insights to predict the viability of installing EV charging stations in your area. By analyzing key factors like population density, traffic patterns, and existing infrastructure, we empower decision-makers to expand the EV network in the most optimal locations.</p>
+
         <hr>
 
         ### 🔥 How It Works:
-        - 📍 **Input** latitude & longitude
-        - 🚗 **Select** vehicle type (encoded)
-        - ⏳ **Specify** expected charging duration
-        - 🔮 **Get an Instant Prediction** whether the station would be **available** or **not**!
+        - 📍 **Enter** latitude and longitude of a location
+        - 🚗 **Select** the vehicle type (encoded for simplicity)
+        - ⏳ **Provide** an estimated charging duration
+        - 🔮 **Instant Prediction** on whether installing a station is feasible or not
 
-        ### 📈 Why it Matters:
-        - Expand EV networks efficiently
-        - Support green mobility revolution
-        - Enhance user satisfaction with well-placed stations
+        ### 📈 Why It Matters:
+        - **Accelerating the EV transition** with well-placed stations
+        - **Minimizing environmental impact** by improving green mobility
+        - **Improving user satisfaction** through better accessibility
 
         ---
     """, unsafe_allow_html=True)
@@ -143,6 +189,8 @@ if page == "Home":
         st.metric(label="✅ Model Accuracy", value=f"{accuracy:.2%}")
         st.text("Detailed Classification Report:")
         st.code(report, language='text')
+
+
 
 # 🚗 Prediction Page
 elif page == "Make Prediction":
@@ -221,42 +269,37 @@ elif page == "Make Prediction":
 # ℹ️ About Page
 # ---------------------------------------------------------------
 elif page == "About":
-    st.header("About Our Project")
+    st.header("About Our EV Charging Station Optimization Project")
 
     st.write("""
         ## 🚀 Problem Statement
         
-        Electric Vehicles (EVs) are becoming increasingly popular, but inadequate charging infrastructure remains a hurdle.
-        
-        This project identifies the **optimal locations** for EV charging stations based on:
-        - Population density
-        - Traffic flow
-        - Existing infrastructure
-        - Power availability
+        The rise of electric vehicles (EVs) is creating a massive demand for more charging infrastructure. Yet, inadequate and poorly located charging stations remain a significant challenge for EV adoption. Our project uses advanced data science techniques to identify **optimal locations** for new EV charging stations based on the following criteria:
+        - **Population density** in the surrounding area
+        - **Traffic flow** for higher station usage
+        - **Existing infrastructure** for easier integration
+        - **Power availability** for efficient operation
 
-        ## 🎯 Aim
-        - **Strategic Placement**
-        - **Data-Driven Decisions**
-        - **Sustainable Growth**
-        - **User Satisfaction**
+        ## 🎯 Project Goals:
+        - **Strategic Placement** of EV stations for high usage and efficiency
+        - **Data-Driven Decisions** based on real-world factors
+        - **Sustainable Growth** of EV networks
+        - **Enhanced User Experience** with well-placed, accessible stations
 
-        ## 🧾 Data Dictionary
-        - *Latitude*: Geographical latitude
-        - *Longitude*: Geographical longitude
-        - *Vehicle Type (Encoded)*: 0 (Two Wheeler), 1 (Three Wheeler), etc.
-        - *Duration*: Expected charging time
-        - *Score*: Suitability for placing new station
+        ## 🧾 Data Dictionary:
+        - *Latitude*: The geographical latitude of the location
+        - *Longitude*: The geographical longitude of the location
+        - *Vehicle Type (Encoded)*: 0 (Two-Wheeler), 1 (Three-Wheeler), 2 (Passenger Car), etc.
+        - *Duration*: Estimated time a vehicle will need to charge at the station
+        - *Availability*: Whether installing a station at this location is feasible (1) or not (0)
 
-        ## 📊 Key Insights
-        - High-density zones + heavy traffic flow → High potential
-        - Infrastructure gaps exist even in major cities
-        - Longer durations common in suburban areas
-        - Passenger vehicles and LCVs have highest charging needs
+        ## 📊 Key Insights:
+        - **High-density zones** with heavy traffic flow show the greatest potential for new stations.
+        - **Suburban areas** tend to require more infrastructure to meet the increasing demand.
+        - Passenger vehicles and light commercial vehicles (LCVs) have the **highest demand** for charging.
 
-        ## 🛠️ Model Performance
-        - **Accuracy**: ~85%
-        - KNN model effective for neighbor-based spatial predictions
-
+        ## 🛠️ Model Overview:
+        - **Accuracy**: ~91% for the KNN model, effective for neighbor-based predictions in spatial data.
     """)
 
     st.subheader("👩‍💻 Team Members")
@@ -264,13 +307,3 @@ elif page == "About":
         - Shreya Chaudhari (221061013)
         - Nithya Cherala (221061014)
     """)
-
-# ---------------------------------------------------------------
-# Footer
-# ---------------------------------------------------------------
-st.sidebar.markdown("---")
-st.sidebar.info(
-    """*Team Members:*  
-    Shreya Chaudhari  
-    Nithya Cherala"""
-)
