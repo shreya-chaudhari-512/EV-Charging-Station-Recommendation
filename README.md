@@ -1,6 +1,3 @@
-# EV-Charginging-Recommendation
-
-
 #  EV Charging Station Optimization
 
 A geospatial data science project focused on identifying optimal locations for Electric Vehicle (EV) charging stations in Maharashtra, India, based on population density, traffic flow, existing infrastructure, and power availability.
