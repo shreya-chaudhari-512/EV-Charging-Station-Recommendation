@@ -7,7 +7,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
-
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.express as px
 
 # ---------------------------------------------------------------
 # 🎨 Page Configuration + Global Background
@@ -155,26 +157,26 @@ knn_model.fit(X_train, y_train)
 # 🧭 Sidebar Navigation
 # ---------------------------------------------------------------
 st.sidebar.title("🔋 EV Charging Recommendation Web-App")
-page = st.sidebar.radio("Go to", ["Home", "Make Prediction", "About"])
+page = st.sidebar.radio("Go to", ["Home", "EDA" , "Make Prediction", "About"])
 
 # ---------------------------------------------------------------
 # 🏠 Home Page
 # ---------------------------------------------------------------
 if page == "Home":
-    st.title("🔋 EV Charging Station Optimization System")
+    st.title("EV Charging Station Optimization System")
     st.markdown("""
         <h3 style='color:#4CAF50;'>Welcome to the Future of Electric Vehicle Infrastructure! ⚡</h3>
         <p>This web app leverages data-driven insights to predict the viability of installing EV charging stations in your area. By analyzing key factors like population density, traffic patterns, and existing infrastructure, we empower decision-makers to expand the EV network in the most optimal locations.</p>
 
         <hr>
 
-        ### 🔥 How It Works:
-        - 📍 **Enter** latitude and longitude of a location
-        - 🚗 **Select** the vehicle type (encoded for simplicity)
-        - ⏳ **Provide** an estimated charging duration
-        - 🔮 **Instant Prediction** on whether installing a station is feasible or not
+        ### How It Works:
+        -  **Enter** latitude and longitude of a location
+        -  **Select** the vehicle type (encoded for simplicity)
+        -  **Provide** an estimated charging duration
+        -  **Instant Prediction** on whether installing a station is feasible or not
 
-        ### 📈 Why It Matters:
+        ### Why It Matters:
         - **Accelerating the EV transition** with well-placed stations
         - **Minimizing environmental impact** by improving green mobility
         - **Improving user satisfaction** through better accessibility
@@ -182,25 +184,78 @@ if page == "Home":
         ---
     """, unsafe_allow_html=True)
 
-    with st.expander("📊 Model Performance Metrics"):
+    with st.expander("Model Performance Metrics"):
         y_pred = knn_model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         report = classification_report(y_test, y_pred)
-        st.metric(label="✅ Model Accuracy", value=f"{accuracy:.2%}")
+        st.metric(label="Model Accuracy", value=f"{accuracy:.2%}")
         st.text("Detailed Classification Report:")
         st.code(report, language='text')
 
+# ---------------------------------------------------------------
+# 📊 EDA Page
+# ---------------------------------------------------------------
+if page == "EDA":
+    st.title("📊 Exploratory Data Analysis (EDA)")
 
+    # Show the first few rows of the dataset
+    st.subheader("Dataset Overview")
+    st.write(df1.head())
+
+    # Show dataset info (column types, non-null values)
+    st.subheader("Data Summary")
+    st.write(df1.describe())
+
+    # Missing Data Heatmap
+    st.subheader("Missing Data Visualization")
+    missing_data = df1.isnull().sum()
+    st.bar_chart(missing_data)
+
+    # Show a correlation heatmap between numeric columns
+    st.subheader("Correlation Heatmap")
+    correlation_matrix = df1.corr()
+    fig, ax = plt.subplots(figsize=(10, 7))
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', ax=ax)
+    st.pyplot(fig)
+
+    # Show Distribution of `vehicle_type`
+    st.subheader("Distribution of Vehicle Types")
+    vehicle_type_dist = df1['vehicle_type'].value_counts()
+    fig = px.pie(values=vehicle_type_dist, names=vehicle_type_dist.index, title="Vehicle Type Distribution")
+    st.plotly_chart(fig)
+
+    # Distribution of `duration`
+    st.subheader("Charging Duration Distribution")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.histplot(df1['duration'], kde=True, ax=ax)
+    st.pyplot(fig)
+
+    # Show Target Distribution (Install/Don't Install)
+    st.subheader("Target Variable Distribution (Install/Don't Install)")
+    install_dist = df1['install'].value_counts()
+    fig = px.pie(values=install_dist, names=install_dist.index, title="Install/Don't Install Distribution")
+    st.plotly_chart(fig)
+
+    # Boxplot of Charging Duration by Vehicle Type
+    st.subheader("Charging Duration by Vehicle Type")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.boxplot(x='vehicle_type', y='duration', data=df1, ax=ax)
+    st.pyplot(fig)
+
+    # Label Encoding Process
+    st.subheader("Label Encoding Process")
+    st.write("For categorical columns like `vehicle_type`, `power_type`, etc., label encoding was applied to transform them into numerical values. Here's an example for `vehicle_type`:")
+    st.write(df1[['vehicle_type']].head())
 
 # 🚗 Prediction Page
 elif page == "Make Prediction":
-    st.title("🚗 Can You Install an EV Charging Station Here?")
+    st.title("Can You Install an EV Charging Station Here?")
 
     col1, col2 = st.columns(2)
 
     # --- 📋 Left Column: Reference Locations (Maharashtra) ---
     with col1:
-        st.subheader("🛣️ Reference Locations (Maharashtra)")
+        st.subheader("Reference Locations (Maharashtra)")
         reference_data = pd.DataFrame({
             "Location": [
                 "Marine Drive, Mumbai", 
@@ -216,7 +271,7 @@ elif page == "Make Prediction":
 
     # --- 🚗 Right Column: Vehicle Type Encoding Reference ---
     with col2:
-        st.subheader("📋 Vehicle Type Encoding Reference")
+        st.subheader("Vehicle Type Encoding Reference")
         vehicle_mapping = {
             0: 'Two Wheeler',
             1: 'Three Wheeler',
@@ -239,7 +294,7 @@ elif page == "Make Prediction":
             user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
-        submitted = st.form_submit_button("🔮 Predict")
+        submitted = st.form_submit_button("Predict")
 
     # --- 🎯 Prediction Result ---
     if submitted:
@@ -247,14 +302,14 @@ elif page == "Make Prediction":
             user_input = np.array([[user_latitude, user_longitude, user_vehicle_type, user_duration]])
             user_prediction = knn_model.predict(user_input)
 
-            st.subheader("🎯 Prediction Result:")
+            st.subheader("Prediction Result:")
             if user_prediction[0] == 1:
-                st.success("✅ Yes, you can install a station here!")
+                st.success("Yes, you can install a station here!")
             else:
-                st.error("🚫 Likely not a suitable place.")
+                st.error("Likely not a suitable place.")
 
             # 📍 Show Location on Map
-            st.subheader("📍 Location on Map:")
+            st.subheader("Location on Map:")
             map_data = pd.DataFrame({
                 'latitude': [user_latitude],
                 'longitude': [user_longitude]
@@ -272,7 +327,7 @@ elif page == "About":
     st.header("About Our EV Charging Station Optimization Project")
 
     st.write("""
-        ## 🚀 Problem Statement
+        ## Problem Statement
         
         The rise of electric vehicles (EVs) is creating a massive demand for more charging infrastructure. Yet, inadequate and poorly located charging stations remain a significant challenge for EV adoption. Our project uses advanced data science techniques to identify **optimal locations** for new EV charging stations based on the following criteria:
         - **Population density** in the surrounding area
@@ -280,29 +335,29 @@ elif page == "About":
         - **Existing infrastructure** for easier integration
         - **Power availability** for efficient operation
 
-        ## 🎯 Project Goals:
+        ## Project Goals:
         - **Strategic Placement** of EV stations for high usage and efficiency
         - **Data-Driven Decisions** based on real-world factors
         - **Sustainable Growth** of EV networks
         - **Enhanced User Experience** with well-placed, accessible stations
 
-        ## 🧾 Data Dictionary:
+        ## Data Dictionary:
         - *Latitude*: The geographical latitude of the location
         - *Longitude*: The geographical longitude of the location
         - *Vehicle Type (Encoded)*: 0 (Two-Wheeler), 1 (Three-Wheeler), 2 (Passenger Car), etc.
         - *Duration*: Estimated time a vehicle will need to charge at the station
         - *Availability*: Whether installing a station at this location is feasible (1) or not (0)
 
-        ## 📊 Key Insights:
+        ## Key Insights:
         - **High-density zones** with heavy traffic flow show the greatest potential for new stations.
         - **Suburban areas** tend to require more infrastructure to meet the increasing demand.
         - Passenger vehicles and light commercial vehicles (LCVs) have the **highest demand** for charging.
 
-        ## 🛠️ Model Overview:
+        ## Model Overview:
         - **Accuracy**: ~91% for the KNN model, effective for neighbor-based predictions in spatial data.
     """)
 
-    st.subheader("👩‍💻 Team Members")
+    st.subheader("Team Members")
     st.write("""
         - Shreya Chaudhari (221061013)
         - Nithya Cherala (221061014)
