@@ -130,10 +130,14 @@ if page == "Home":
 # 🚗 Prediction Page
 # ---------------------------------------------------------------
 elif page == "Make Prediction":
-    st.title("🚗 Can You Install a EV Charging Station here?")
+    st.title("🚗 Can You Install an EV Charging Station here?")
 
-    # Vehicle Type Reference Table
-    st.subheader("📋 Vehicle Type Encoding Reference")
+    # 📋 Vehicle Type Reference Table
+    st.markdown("""
+        <h3 style='color: #4CAF50;'>📋 Vehicle Type Encoding Reference</h3>
+        <p>Please select the correct vehicle type based on the table below:</p>
+    """, unsafe_allow_html=True)
+
     vehicle_mapping = {
         0: 'Two Wheeler',
         1: 'Three Wheeler',
@@ -142,15 +146,32 @@ elif page == "Make Prediction":
         4: 'Heavy Commercial Vehicle'
     }
     vehicle_df = pd.DataFrame(list(vehicle_mapping.items()), columns=['Encoded Value', 'Vehicle Type'])
-    st.table(vehicle_df)
 
+    st.dataframe(vehicle_df.style.set_properties(**{
+        'background-color': '#E8F5E9',
+        'color': 'black',
+        'border-color': 'black',
+        'text-align': 'center'
+    }), use_container_width=True)
+
+    # 🔮 Prediction Input Form
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
         with col1:
             user_latitude = st.number_input("Enter Latitude:", format="%.6f")
             user_longitude = st.number_input("Enter Longitude:", format="%.6f")
         with col2:
-            user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
+            # Using selectbox instead of number input for Vehicle Type
+            vehicle_type_options = {
+                'Two Wheeler': 0,
+                'Three Wheeler': 1,
+                'Passenger Car': 2,
+                'Light Commercial Vehicle': 3,
+                'Heavy Commercial Vehicle': 4
+            }
+            selected_vehicle = st.selectbox("Select Vehicle Type:", list(vehicle_type_options.keys()))
+            user_vehicle_type = vehicle_type_options[selected_vehicle]
+
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
         submitted = st.form_submit_button("🔮 Predict")
@@ -176,6 +197,7 @@ elif page == "Make Prediction":
 
         except Exception as e:
             st.error(f"Prediction Error: {e}")
+
 
 # ---------------------------------------------------------------
 # ℹ️ About Page
