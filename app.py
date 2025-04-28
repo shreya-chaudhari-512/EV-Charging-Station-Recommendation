@@ -8,14 +8,32 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.model_selection import train_test_split
 
+
 # ---------------------------------------------------------------
-# 🎨 Page Configuration
+# 🎨 Page Configuration + Global Background
 # ---------------------------------------------------------------
 st.set_page_config(
     page_title="EV Charger Availability Prediction",
     page_icon="🔋",
     layout="wide"
 )
+
+# --- Global Background Image + White Overlay ---
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)),
+                    url('https://images.unsplash.com/photo-1549921296-3a5458a92c24?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # ---------------------------------------------------------------
 # 📥 Load Dataset
@@ -126,56 +144,56 @@ if page == "Home":
         st.text("Detailed Classification Report:")
         st.code(report, language='text')
 
-# ---------------------------------------------------------------
 # 🚗 Prediction Page
-# ---------------------------------------------------------------
 elif page == "Make Prediction":
-    st.title("🚗 Can You Install an EV Charging Station here?")
+    st.title("🚗 Can You Install an EV Charging Station Here?")
 
-    # 📋 Vehicle Type Reference Table
-    st.markdown("""
-        <h3 style='color: #4CAF50;'>📋 Vehicle Type Encoding Reference</h3>
-        <p>Please select the correct vehicle type based on the table below:</p>
-    """, unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
 
-    vehicle_mapping = {
-        0: 'Two Wheeler',
-        1: 'Three Wheeler',
-        2: 'Passenger Car',
-        3: 'Light Commercial Vehicle',
-        4: 'Heavy Commercial Vehicle'
-    }
-    vehicle_df = pd.DataFrame(list(vehicle_mapping.items()), columns=['Encoded Value', 'Vehicle Type'])
+    # --- 📋 Left Column: Reference Locations (Maharashtra) ---
+    with col1:
+        st.subheader("🛣️ Reference Locations (Maharashtra)")
+        reference_data = pd.DataFrame({
+            "Location": [
+                "Marine Drive, Mumbai", 
+                "FC Road, Pune", 
+                "Nagpur Railway Station",
+                "Aurangabad Caves",
+                "Nashik Road"
+            ],
+            "Latitude": [18.9430, 18.5293, 21.1466, 19.9126, 19.9425],
+            "Longitude": [72.8238, 73.8446, 79.0849, 75.8370, 73.8087]
+        })
+        st.table(reference_data)
 
-    st.dataframe(vehicle_df.style.set_properties(**{
-        'background-color': '#E8F5E9',
-        'color': 'black',
-        'border-color': 'black',
-        'text-align': 'center'
-    }), use_container_width=True)
+    # --- 🚗 Right Column: Vehicle Type Encoding Reference ---
+    with col2:
+        st.subheader("📋 Vehicle Type Encoding Reference")
+        vehicle_mapping = {
+            0: 'Two Wheeler',
+            1: 'Three Wheeler',
+            2: 'Passenger Car',
+            3: 'Light Commercial Vehicle',
+            4: 'Heavy Commercial Vehicle'
+        }
+        vehicle_df = pd.DataFrame(list(vehicle_mapping.items()), columns=['Encoded Value', 'Vehicle Type'])
+        st.table(vehicle_df)
 
-    # 🔮 Prediction Input Form
+    st.markdown("---")
+
+    # --- 🔮 User Input Form for Prediction ---
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
         with col1:
             user_latitude = st.number_input("Enter Latitude:", format="%.6f")
             user_longitude = st.number_input("Enter Longitude:", format="%.6f")
         with col2:
-            # Using selectbox instead of number input for Vehicle Type
-            vehicle_type_options = {
-                'Two Wheeler': 0,
-                'Three Wheeler': 1,
-                'Passenger Car': 2,
-                'Light Commercial Vehicle': 3,
-                'Heavy Commercial Vehicle': 4
-            }
-            selected_vehicle = st.selectbox("Select Vehicle Type:", list(vehicle_type_options.keys()))
-            user_vehicle_type = vehicle_type_options[selected_vehicle]
-
+            user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
         submitted = st.form_submit_button("🔮 Predict")
 
+    # --- 🎯 Prediction Result ---
     if submitted:
         try:
             user_input = np.array([[user_latitude, user_longitude, user_vehicle_type, user_duration]])
@@ -187,7 +205,7 @@ elif page == "Make Prediction":
             else:
                 st.error("🚫 Likely not a suitable place.")
 
-            # Show on Map
+            # 📍 Show Location on Map
             st.subheader("📍 Location on Map:")
             map_data = pd.DataFrame({
                 'latitude': [user_latitude],
