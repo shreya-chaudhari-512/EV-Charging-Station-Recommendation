@@ -20,7 +20,7 @@ st.set_page_config(
 # ---------------------------------------------------------------
 # 📥 Load Dataset
 # ---------------------------------------------------------------
-@st.cache_data
+# @st.cache_data
 def load_data():
     return pd.read_csv('final_cleaned.csv')  # <- your correct path!
 
