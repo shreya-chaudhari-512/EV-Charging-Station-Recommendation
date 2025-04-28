@@ -131,7 +131,7 @@ knn_model.fit(X_train, y_train)
 # ---------------------------------------------------------------
 # 🧭 Sidebar Navigation
 # ---------------------------------------------------------------
-st.sidebar.title("🔋 EV Charging Recommendation Web-App")
+st.sidebar.title("EV Charging Recommendation Web-App")
 page = st.sidebar.radio("Go to", ["Home", "EDA", "Make Prediction", "About"])
 
 # ---------------------------------------------------------------
@@ -165,7 +165,7 @@ if page == "Home":
 # 📊 EDA Page
 # ---------------------------------------------------------------
 elif page == "EDA":
-    st.title("📊 Exploratory Data Analysis (EDA)")
+    st.title("Exploratory Data Analysis (EDA)")
 
     # Cleaning for EDA
     df1_cleaned = df1.copy()
@@ -181,33 +181,19 @@ elif page == "EDA":
     st.bar_chart(df1.isnull().sum())
 
     st.subheader("Correlation Heatmap")
-    fig, ax = plt.subplots(figsize=(10, 7))
+    fig, ax = plt.subplots(figsize=(8, 5))
     sns.heatmap(df1_cleaned.corr(), annot=True, cmap="coolwarm", ax=ax)
     st.pyplot(fig)
-
-    st.subheader("Distribution of Numerical Features")
-    numerical_cols = df1_cleaned.select_dtypes(include=[np.number]).columns
-    for col in numerical_cols:
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.histplot(df1_cleaned[col], kde=True, color="skyblue", ax=ax)
-        st.pyplot(fig)
-
-    st.subheader("Boxplots for Numerical Features")
-    for col in numerical_cols:
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.boxplot(data=df1_cleaned, x=col, color="orange", ax=ax)
-        st.pyplot(fig)
-
 # ---------------------------------------------------------------
 # 🚗 Make Prediction Page
 # ---------------------------------------------------------------
 elif page == "Make Prediction":
-    st.title("🚗 Can You Install an EV Charging Station Here?")
+    st.title("Can You Install an EV Charging Station Here?")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("🛣️ Reference Locations (Maharashtra)")
+        st.subheader("Reference Locations (Maharashtra)")
         reference_data = pd.DataFrame({
             "Location": ["Marine Drive, Mumbai", "FC Road, Pune", "Nagpur Railway Station", "Aurangabad Caves", "Nashik Road"],
             "Latitude": [18.9430, 18.5293, 21.1466, 19.9126, 19.9425],
@@ -216,7 +202,7 @@ elif page == "Make Prediction":
         st.table(reference_data)
 
     with col2:
-        st.subheader("📋 Vehicle Type Encoding Reference")
+        st.subheader("Vehicle Type Encoding Reference")
         vehicle_mapping = {
             0: 'Two Wheeler',
             1: 'Three Wheeler',
@@ -244,13 +230,13 @@ elif page == "Make Prediction":
             user_input = np.array([[user_lat, user_lon, user_vehicle, user_duration]])
             prediction = knn_model.predict(user_input)
 
-            st.subheader("🎯 Prediction Result:")
+            st.subheader("Prediction Result:")
             if prediction[0] == 1:
-                st.success("✅ Yes, you can install a station here!")
+                st.success("Yes, you can install a station here!")
             else:
-                st.error("🚫 Likely not a suitable place.")
+                st.error("Likely not a suitable place.")
 
-            st.subheader("📍 Location on Map:")
+            st.subheader("Location on Map:")
             st.map(pd.DataFrame({'latitude': [user_lat], 'longitude': [user_lon]}))
         except Exception as e:
             st.error(f"Prediction Error: {e}")
@@ -259,7 +245,7 @@ elif page == "Make Prediction":
 # ℹ️ About Page
 # ---------------------------------------------------------------
 elif page == "About":
-    st.title("ℹ️ About Our EV Charging Station Optimization Project")
+    st.title("About Our EV Charging Station Optimization Project")
     st.write("""
         ## Problem Statement
         We aim to address the demand-supply gap in EV infrastructure using data-driven approaches.
