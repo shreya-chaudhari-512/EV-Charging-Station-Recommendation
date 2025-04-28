@@ -99,23 +99,31 @@ page = st.sidebar.radio("Go to", ["Home", "Make Prediction", "About"])
 if page == "Home":
     st.title("🔋 EV Charging Station Optimization System")
     st.markdown("""
-        Welcome to the **EV Charging Station Optimization System**! 🚗⚡  
-        This app helps predict whether installing a new EV charging station at a given location would be beneficial or not.
+        <h3 style='color:#4CAF50;'>Welcome to the Future of EV Infrastructure! 🚗⚡</h3>
+        <p>This app helps predict whether installing a new EV charging station at a given location would be beneficial or not.</p>
         
-        ### How it works:
-        - 📍 Input latitude & longitude
-        - 🚗 Select vehicle type (encoded)
-        - ⏳ Specify expected charging duration
-        - 🔮 Get an instant prediction whether the station would be **available** or **not**!
+        <hr>
+
+        ### 🔥 How It Works:
+        - 📍 **Input** latitude & longitude
+        - 🚗 **Select** vehicle type (encoded)
+        - ⏳ **Specify** expected charging duration
+        - 🔮 **Get an Instant Prediction** whether the station would be **available** or **not**!
+
+        ### 📈 Why it Matters:
+        - Expand EV networks efficiently
+        - Support green mobility revolution
+        - Enhance user satisfaction with well-placed stations
 
         ---
-    """)
-    with st.expander("🔎 Model Performance"):
+    """, unsafe_allow_html=True)
+
+    with st.expander("📊 Model Performance Metrics"):
         y_pred = knn_model.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         report = classification_report(y_test, y_pred)
-        st.metric(label="Model Accuracy", value=f"{accuracy:.2%}")
-        st.text("Classification Report:")
+        st.metric(label="✅ Model Accuracy", value=f"{accuracy:.2%}")
+        st.text("Detailed Classification Report:")
         st.code(report, language='text')
 
 # ---------------------------------------------------------------
@@ -123,6 +131,18 @@ if page == "Home":
 # ---------------------------------------------------------------
 elif page == "Make Prediction":
     st.title("🚗 Can You Install a EV Charging Station here?")
+
+    # Vehicle Type Reference Table
+    st.subheader("📋 Vehicle Type Encoding Reference")
+    vehicle_mapping = {
+        0: 'Two Wheeler',
+        1: 'Three Wheeler',
+        2: 'Passenger Car',
+        3: 'Light Commercial Vehicle',
+        4: 'Heavy Commercial Vehicle'
+    }
+    vehicle_df = pd.DataFrame(list(vehicle_mapping.items()), columns=['Encoded Value', 'Vehicle Type'])
+    st.table(vehicle_df)
 
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
@@ -133,7 +153,7 @@ elif page == "Make Prediction":
             user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
-        submitted = st.form_submit_button("Predict")
+        submitted = st.form_submit_button("🔮 Predict")
 
     if submitted:
         try:
@@ -142,11 +162,11 @@ elif page == "Make Prediction":
 
             st.subheader("🎯 Prediction Result:")
             if user_prediction[0] == 1:
-                st.success("✅Yes, you can!")
+                st.success("✅ Yes, you can install a station here!")
             else:
-                st.error("🚫 Likely Can't.")
+                st.error("🚫 Likely not a suitable place.")
 
-            # 🎯 Show on a Map
+            # Show on Map
             st.subheader("📍 Location on Map:")
             map_data = pd.DataFrame({
                 'latitude': [user_latitude],
@@ -162,67 +182,52 @@ elif page == "Make Prediction":
 # ---------------------------------------------------------------
 elif page == "About":
     st.header("About Our Project")
-    
-    st.write("""
-        ## Problem Statement
-        
-        Electric Vehicles (EVs) are becoming increasingly popular, but inadequate charging infrastructure remains a major hurdle to mass adoption. This project aims to identify the optimal locations for EV charging stations by analyzing key factors like population density, traffic flow, existing infrastructure, and power availability to ensure maximum utilization and convenience for users.
-        
-        ### Aim
-        
-        - *Strategic Placement*: Identify optimal locations for EV charging stations to maximize accessibility and convenience.
-        - *Data-Driven Decisions*: Leverage key factors like population density, traffic flow, existing infrastructure, and power availability.
-        - *Sustainable Growth*: Support the expansion of EV infrastructure in a scalable and environmentally responsible manner.
-        - *User Satisfaction*: Reduce range anxiety by ensuring better coverage and reliability for EV users.     
-        
-        ### Data Dictionary
-        
-        The dataset contains traffic flow records, including:
-        
-        - *Latitude*: Latitude of the location (geographical coordinate)
-        - *Longitude*: Longitude of the location (geographical coordinate)
-        - *Population Density*: Number of people living per square kilometer
-        - *Traffic Flow*: Average vehicle flow (vehicles per day)
-        - *Existing Infrastructure*: Availability of existing EV stations nearby (count)
-        - *Power Availability*: Availability of sufficient electrical capacity at the location
-        - *Vehicle Type (Encoded)*: Encoded type of common vehicle usage (e.g., Passenger, Commercial)
-        - *Expected Charging Duration*: Average time vehicles spend charging (hours)
-        - *Score*: Calculated score for suitability of placing a new station
-        
-        ### Key Insights
-        
-        - *High Potential Zones*: Locations with **high population density** and **heavy traffic flow** were most favorable for new EV charging stations.
-        - *Infrastructure Gaps*: Several high-demand areas lacked sufficient existing EV infrastructure, highlighting major opportunities for station deployment.
-        - *Power Constraints*: Some otherwise ideal areas were unsuitable due to **insufficient power availability**.
-        - *Vehicle Patterns*: Areas with a higher mix of **passenger vehicles** and **light commercial vehicles** showed the most consistent charging needs.
-        - *Charging Duration Trends*: Longer expected charging durations were more common in suburban regions compared to city centers.
-        
-        ### Model Performance
-        
-        The K-Nearest Neighbors (KNN) model was trained to predict the suitability of locations for EV charging station placement based on key spatial and infrastructure factors.
-        The model successfully identified clusters of high-potential locations, offering **valuable, data-driven support** for EV infrastructure planning.
 
-        - **Accuracy**: ~85% (for classification tasks)
-        - **Mean Squared Error (MSE)**: Low (for regression tasks)
-        - **Model Strengths**: Effective in spatial neighbor-based predictions and simple to interpret for strategic planning.
-    """)
-    
-    st.subheader("Applications")
     st.write("""
-        - *Traffic Management*: Optimizing signal timings and road usage
-        - *Urban Planning*: Informing infrastructure development decisions
-        - *Environmental Impact*: Reducing emissions through better traffic flow
-        - *Public Transportation*: Adjusting schedules based on predicted congestion
+        ## 🚀 Problem Statement
+        
+        Electric Vehicles (EVs) are becoming increasingly popular, but inadequate charging infrastructure remains a hurdle.
+        
+        This project identifies the **optimal locations** for EV charging stations based on:
+        - Population density
+        - Traffic flow
+        - Existing infrastructure
+        - Power availability
+
+        ## 🎯 Aim
+        - **Strategic Placement**
+        - **Data-Driven Decisions**
+        - **Sustainable Growth**
+        - **User Satisfaction**
+
+        ## 🧾 Data Dictionary
+        - *Latitude*: Geographical latitude
+        - *Longitude*: Geographical longitude
+        - *Vehicle Type (Encoded)*: 0 (Two Wheeler), 1 (Three Wheeler), etc.
+        - *Duration*: Expected charging time
+        - *Score*: Suitability for placing new station
+
+        ## 📊 Key Insights
+        - High-density zones + heavy traffic flow → High potential
+        - Infrastructure gaps exist even in major cities
+        - Longer durations common in suburban areas
+        - Passenger vehicles and LCVs have highest charging needs
+
+        ## 🛠️ Model Performance
+        - **Accuracy**: ~85%
+        - KNN model effective for neighbor-based spatial predictions
+
     """)
 
-    st.subheader("Team Members")
+    st.subheader("👩‍💻 Team Members")
     st.write("""
-        - *Shreya Chaudhari*: 221061013
-        - *Nithya Cherala*: 221061014
+        - Shreya Chaudhari (221061013)
+        - Nithya Cherala (221061014)
     """)
-   
 
-# Add footer
+# ---------------------------------------------------------------
+# Footer
+# ---------------------------------------------------------------
 st.sidebar.markdown("---")
 st.sidebar.info(
     """*Team Members:*  
