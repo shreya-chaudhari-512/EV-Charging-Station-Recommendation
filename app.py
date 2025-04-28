@@ -329,7 +329,7 @@ st.markdown("""
     
 
 # 🚗 Prediction Page
-elif page == "Make Prediction":
+if page == "Make Prediction":
     st.title("🚗 Can You Install an EV Charging Station Here?")
 
     col1, col2 = st.columns(2)
