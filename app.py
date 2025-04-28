@@ -90,7 +90,7 @@ knn_model.fit(X_train, y_train)
 # ---------------------------------------------------------------
 # 🧭 Sidebar Navigation
 # ---------------------------------------------------------------
-st.sidebar.title("🔋 EV Charging App")
+st.sidebar.title("🔋 EV Charging Recommendation Web-App")
 page = st.sidebar.radio("Go to", ["Home", "Make Prediction", "About"])
 
 # ---------------------------------------------------------------
@@ -122,7 +122,7 @@ if page == "Home":
 # 🚗 Prediction Page
 # ---------------------------------------------------------------
 elif page == "Make Prediction":
-    st.title("🚗 Predict EV Charger Availability")
+    st.title("🚗 Can You Install a EV Charging Station here?")
 
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
@@ -133,7 +133,7 @@ elif page == "Make Prediction":
             user_vehicle_type = st.number_input("Enter Vehicle Type (encoded integer):", step=1, format="%d")
             user_duration = st.number_input("Enter Charging Duration (in seconds):", format="%.2f")
 
-        submitted = st.form_submit_button("Predict Availability 🚀")
+        submitted = st.form_submit_button("Predict")
 
     if submitted:
         try:
@@ -142,9 +142,9 @@ elif page == "Make Prediction":
 
             st.subheader("🎯 Prediction Result:")
             if user_prediction[0] == 1:
-                st.success("✅ Likely Available for EV Charging!")
+                st.success("✅Yes, you can!")
             else:
-                st.error("🚫 Likely NOT Available for EV Charging.")
+                st.error("🚫 Likely Can't.")
 
             # 🎯 Show on a Map
             st.subheader("📍 Location on Map:")
@@ -161,19 +161,71 @@ elif page == "Make Prediction":
 # ℹ️ About Page
 # ---------------------------------------------------------------
 elif page == "About":
-    st.title("ℹ️ About This Project")
-    st.markdown("""
-        This project is developed to assist urban planners and EV companies in optimizing the location of EV Charging Stations. 
+    st.header("About Our Project")
+    
+    st.write("""
+        ## Problem Statement
         
-        **Key Features:**
-        - Location-based prediction
-        - Vehicle-type wise adjustment
-        - KNN-based machine learning model
-        - Simple, user-friendly interface
-
-        Developed with ❤️ by [Your Name].
+        Electric Vehicles (EVs) are becoming increasingly popular, but inadequate charging infrastructure remains a major hurdle to mass adoption. This project aims to identify the optimal locations for EV charging stations by analyzing key factors like population density, traffic flow, existing infrastructure, and power availability to ensure maximum utilization and convenience for users.
         
-        GitHub Repo: [🔗 Click Here](https://github.com/shreya-chaudhari-512/EV-Charging-Station-Optimization)
+        ### Aim
+        
+        - *Strategic Placement*: Identify optimal locations for EV charging stations to maximize accessibility and convenience.
+        - *Data-Driven Decisions*: Leverage key factors like population density, traffic flow, existing infrastructure, and power availability.
+        - *Sustainable Growth*: Support the expansion of EV infrastructure in a scalable and environmentally responsible manner.
+        - *User Satisfaction*: Reduce range anxiety by ensuring better coverage and reliability for EV users.     
+        
+        ### Data Dictionary
+        
+        The dataset contains traffic flow records, including:
+        
+        - *Latitude*: Latitude of the location (geographical coordinate)
+        - *Longitude*: Longitude of the location (geographical coordinate)
+        - *Population Density*: Number of people living per square kilometer
+        - *Traffic Flow*: Average vehicle flow (vehicles per day)
+        - *Existing Infrastructure*: Availability of existing EV stations nearby (count)
+        - *Power Availability*: Availability of sufficient electrical capacity at the location
+        - *Vehicle Type (Encoded)*: Encoded type of common vehicle usage (e.g., Passenger, Commercial)
+        - *Expected Charging Duration*: Average time vehicles spend charging (hours)
+        - *Score*: Calculated score for suitability of placing a new station
+        
+        ### Key Insights
+        
+        - *High Potential Zones*: Locations with **high population density** and **heavy traffic flow** were most favorable for new EV charging stations.
+        - *Infrastructure Gaps*: Several high-demand areas lacked sufficient existing EV infrastructure, highlighting major opportunities for station deployment.
+        - *Power Constraints*: Some otherwise ideal areas were unsuitable due to **insufficient power availability**.
+        - *Vehicle Patterns*: Areas with a higher mix of **passenger vehicles** and **light commercial vehicles** showed the most consistent charging needs.
+        - *Charging Duration Trends*: Longer expected charging durations were more common in suburban regions compared to city centers.
+        
+        ### Model Performance
+        
+        The K-Nearest Neighbors (KNN) model was trained to predict the suitability of locations for EV charging station placement based on key spatial and infrastructure factors.
+        The model successfully identified clusters of high-potential locations, offering **valuable, data-driven support** for EV infrastructure planning.
 
-        ---
+        - **Accuracy**: ~85% (for classification tasks)
+        - **Mean Squared Error (MSE)**: Low (for regression tasks)
+        - **Model Strengths**: Effective in spatial neighbor-based predictions and simple to interpret for strategic planning.
     """)
+    
+    st.subheader("Applications")
+    st.write("""
+        - *Traffic Management*: Optimizing signal timings and road usage
+        - *Urban Planning*: Informing infrastructure development decisions
+        - *Environmental Impact*: Reducing emissions through better traffic flow
+        - *Public Transportation*: Adjusting schedules based on predicted congestion
+    """)
+
+    st.subheader("Team Members")
+    st.write("""
+        - *Shreya Chaudhari*: 221061013
+        - *Nithya Cherala*: 221061014
+    """)
+   
+
+# Add footer
+st.sidebar.markdown("---")
+st.sidebar.info(
+    """*Team Members:*  
+    Shreya Chaudhari  
+    Nithya Cherala"""
+)
